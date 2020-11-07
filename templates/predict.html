@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Answer_Evaluator</title>
+        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
+        <link rel="stylesheet" href="{{ url_for('static',filename='stylesheet/style.css')}}"> <!-- load stylesheet-->
+        <style>
+            
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1 style="text-align: center;">Welcome to Stance Detector</h1>
+            <form id="stanceform" method="POST" class="well">
+                <textarea id="article" autofocus for="article" name="article" class="form-control" rows="5" columns="100"></textarea>
+                <br>
+                <textarea id="headline" autofocus for="headline" name="headline" class="form-control" rows="2" columns="100"></textarea>
+                <br>
+                <button type="submit" class="btn btn-success btn-lg" >DETECT</button>
+            </form>
+            <div id="resultmodal" class="modal">
+                <div class="imgcontainer">
+                  <span onclick="perform()" class="close" title="Close Modal">&times;</span>
+                </div>
+                <div class="container" style="background-color:#f1f1f1">
+                  <h1>Stance:</h1>
+                  <p id="resultpara"><b></b></p>
+                </div>
+            </div>
+        </div>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="{{ url_for('static',filename='js/script.js')}}"></script>
+    </body>
+</html>
