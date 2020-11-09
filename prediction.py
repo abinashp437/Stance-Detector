@@ -4,49 +4,13 @@ from flask_cors import CORS
 import pickle
 import pandas as pd
 import numpy as np
-import nltk
-nltk.download('stopwords') #for stopword removal
-nltk.download('wordnet')
-from nltk.corpus import stopwords
-from gensim.models import Word2Vec
 import tensorflow as tf
 from tensorflow import keras
+import preprocessor as pr
+
 
 app = Flask(__name__)
 CORS(app)
-
-stop_words = stopwords.words('english')
-w_tokenizer = nltk.tokenize.WhitespaceTokenizer()
-lemmatizer = nltk.stem.WordNetLemmatizer()
-pad_art = 180
-pad_head = 11
-
-def n_removal(text):
-    return text.replace('\n','')
-
-def stopword_removal(text):
-    return ' '.join([word for word in text.split() if word not in stop_words])
-
-def lemmatization(text):
-    return ' '.join([lemmatizer.lemmatize(word) for word in w_tokenizer.tokenize(text)])
-
-def case_lower(text):
-    return text.lower()
-
-def trim_line(text, pad):
-    return ' '.join(w_tokenizer.tokenize(text)[:pad])
-
-def preprocessed(text):
-    text = n_removal(text)
-    text = stopword_removal(text)
-    text = lemmatization(text)
-    text = case_lower(text)
-    return text
-
-def vectorise(text):
-    vec = Word2Vec.load('vector.bin')
-    vectors = [vec[word] for word in w_tokenizer.tokenize(text)]
-    return vectors
 
 
 @app.route('/')
@@ -57,20 +21,22 @@ def webprint():
 def obtain():
     article = request.form['article']
     headline = request.form['headline']
-    print(article)
-    print(headline)
-    stance = jsonify(predictor(article, headline)) #answer = preprocessed attribute
+    pad_art = 180
+    pad_head = 11
+    pre_art = pr.preprocess(article)
+    pre_head = pr.preprocess(headline)
+    trim_art = pr.trim_line(pre_art, pad_art)
+    trim_head = pr.trim_line(pre_head, pad_head)
+    art_vec = pr.vectorise(trim_art, pad_art)
+    head_vec = pr.vectorise(trim_head, pad_head)
+    stance = jsonify(predictor(art_vec, head_vec)) #answer = preprocessed attribute
     stance.headers.add('Access-Control-Allow-Origin', '*')
     return stance
 
-def predictor(art, head):
-    art = preprocessed(art)
-    head = preprocessed(head)
-    art = trim_line(art, pad_art)
-    head = trim_line(head, pad_head)
-    art_vec = vectorise(art)
-    head_vec = vectorise(head)
-    test = [head_vec, art_vec]
+def predictor(art_vec, head_vec):
+    head_test = tf.convert_to_tensor(head_vec)
+    art_test = tf.convert_to_tensor(art_vec)
+    test = [head_test, art_test]
     classifier = pickle.load(open('model.h5','rb'))
     stance = classifier.predict(test)
     print(stance)
@@ -86,5 +52,7 @@ def predictor(art, head):
     ret['stance'] = str(result)
     print(ret)
     return ret
+
+
 
 app.run(port=8787, debug=True)
